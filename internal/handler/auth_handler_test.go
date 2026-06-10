@@ -11,7 +11,7 @@ import (
 )
 
 func TestAuthHandler_DummyLogin(t *testing.T) {
-	handler := NewAuthHandler("test-secret", 24)
+	handler := NewAuthHandler("test-secret", 24, nil)
 
 	tests := []struct {
 		name       string
@@ -35,7 +35,7 @@ func TestAuthHandler_DummyLogin(t *testing.T) {
 }
 
 func TestAuthHandler_DummyLogin_WithContext(t *testing.T) {
-	handler := NewAuthHandler("test-secret", 24)
+	handler := NewAuthHandler("test-secret", 24, nil)
 
 	req := httptest.NewRequest("POST", "/dummyLogin", bytes.NewBufferString(`{"role":"admin"}`))
 	w := httptest.NewRecorder()
