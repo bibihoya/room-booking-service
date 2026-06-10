@@ -1,6 +1,6 @@
 module github.com/internships-backend/test-backend-bibihoya-1
 
-go 1.25.0
+go 1.21.0
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
