@@ -21,19 +21,38 @@ var (
 )
 
 func InitTestDB() {
-	time.Sleep(2 * time.Second)
+	maxRetries := 30
+	retryInterval := 2 * time.Second
 
 	connStr := "host=localhost port=5432 user=postgres password=postgres sslmode=disable"
-	adminDB, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatalf("Failed to connect to postgres: %v", err)
-	}
-	defer adminDB.Close()
 
-	if err := adminDB.Ping(); err != nil {
-		log.Fatalf("Cannot ping postgres: %v", err)
+	var adminDB *sql.DB
+	var err error
+
+	for i := 0; i < maxRetries; i++ {
+		adminDB, err = sql.Open("postgres", connStr)
+		if err != nil {
+			log.Printf("Attempt %d: Failed to open connection: %v", i+1, err)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		if err = adminDB.Ping(); err != nil {
+			log.Printf("Attempt %d: Cannot ping postgres: %v", i+1, err)
+			adminDB.Close()
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		log.Println("Connected to PostgreSQL")
+		break
 	}
-	log.Println("Connected to PostgreSQL")
+
+	if err != nil {
+		log.Fatalf("Failed to connect to PostgreSQL after %d attempts: %v", maxRetries, err)
+	}
+
+	defer adminDB.Close()
 
 	dbName := "meeting_booking_test"
 
@@ -62,6 +81,10 @@ func InitTestDB() {
 	)
 	if err != nil {
 		log.Fatalf("Failed to connect to test DB: %v", err)
+	}
+
+	if err := TestDB.Ping(); err != nil {
+		log.Fatalf("Failed to ping test DB: %v", err)
 	}
 
 	if err := database.Migrate(TestDB); err != nil {
