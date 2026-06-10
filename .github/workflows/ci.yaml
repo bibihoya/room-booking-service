@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Run linter
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          make lint
+
+      - name: Run unit tests with coverage
+        run: make test-cover
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.out
+          flags: unittests
+
+      - name: Start services for integration tests
+        run: docker-compose up -d
+
+      - name: Run integration tests
+        run: go test -v ./tests/integration/...
+
+      - name: Run E2E tests
+        run: go test -v ./tests/e2e/...
+
+      - name: Run load tests (smoke)
+        run: |
+          k6 run --duration 10s --vus 10 tests/load/slot-test.js
