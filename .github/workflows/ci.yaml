@@ -17,11 +17,12 @@ jobs:
         with:
           go-version: '1.25'
 
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
+
       - name: Run linter
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
-          args: --timeout=5m
+        run: make lint
 
       - name: Run unit tests with coverage
         run: make test-cover
@@ -41,19 +42,11 @@ jobs:
             sleep 2
           done
 
-      - name: Wait for PostgreSQL to be ready (alternative)
-        run: |
-          until docker-compose exec -T postgres pg_isready -U postgres; do
-            echo "Waiting for postgres..."
-            sleep 2
-          done
-
       - name: Run integration tests
-        run: go test -v ./tests/integration/...
+        run: make integration
 
       - name: Run E2E tests
-        run: go test -v ./tests/e2e/...
+        run: make e2e
 
       - name: Run load tests (smoke)
-        run: |
-          k6 run --duration 10s --vus 10 tests/load/slot-test.js
+        run: make load
