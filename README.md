@@ -219,3 +219,4 @@ k6 run tests/load/load-test.js
 | JWT_TTL | 24 | TTL токена (часы) |
 
 ---
+
