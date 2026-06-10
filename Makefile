@@ -1,4 +1,4 @@
-.PHONY: up down seed test
+.PHONY: up down seed test lint
 
 up:
 	docker-compose up --build -d
@@ -12,3 +12,6 @@ seed:
 
 test:
 	go test -v ./...
+
+lint:
+	golangci-lint run ./...
